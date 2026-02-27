@@ -44,7 +44,7 @@ This setup lets you compare LLM-based extraction against rule-based extraction a
   - **Windows:** [Tesseract at UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) — run the installer and optionally add to PATH.
   - **macOS:** `brew install tesseract`
   - **Linux:** `sudo apt install tesseract-ocr` (or equivalent)
-- **LLM for Pipeline A:** either an **OpenAI API key** or local **Ollama** (no key needed)
+- **LLM for Pipeline A:** **OpenAI** or **Gemini** API key, or local **Ollama** (no key needed)
 
 ## Installation
 
@@ -65,7 +65,7 @@ This setup lets you compare LLM-based extraction against rule-based extraction a
    pip install -r invoice_extractor/requirements.txt
    ```
 
-3. Copy `invoice_extractor/.env.example` to `.env` (in repo root or in `invoice_extractor/`) and set:
+3. Copy `.env.example` (at repo root or in `invoice_extractor/`) to `.env` and set:
 
    - For **OpenAI:** `OPENAI_API_KEY` and `INVOICE_LLM_PROVIDER=openai`.
    - For **Gemini (free, good for Colab):** `GEMINI_API_KEY` and `INVOICE_LLM_PROVIDER=gemini` (get key at [Google AI Studio](https://aistudio.google.com/apikey)).
@@ -111,6 +111,33 @@ python -m invoice_extractor.main
 
 Place invoice images in the configured directory (default: `invoice_extractor/images/`; you can use a subfolder such as `batch_1/batch_1/batch1_1/`) with names like `batch1-0348.jpg`, `batch1-0349.jpg`, etc. The default range is indices 348–350 (three images). Adjust `INVOICE_IMAGE_PREFIX`, `INVOICE_IMAGE_START`, `INVOICE_IMAGE_END`, and `INVOICE_IMAGE_EXT` to match your naming and range.
 
+## Docker
+
+Build and run with Docker (Tesseract is installed in the image):
+
+```bash
+# From repo root
+docker build -f invoice_extractor/Dockerfile -t invoice-extraction:latest .
+docker run --env-file .env \
+  -v "$(pwd)/invoice_extractor/images:/app/invoice_extractor/images:ro" \
+  -v "$(pwd)/invoice_extractor/outputs:/app/invoice_extractor/outputs" \
+  invoice-extraction:latest
+```
+
+Or use **docker compose** (from repo root; expects `.env` in the same directory):
+
+```bash
+docker compose -f invoice_extractor/docker-compose.yml up --build
+```
+
+Images are read from `invoice_extractor/images/` and outputs written to `invoice_extractor/outputs/` via the mounted volumes. To run with **Ollama inside Docker** (no API key for Pipeline A), use the optional profile:
+
+```bash
+docker compose -f invoice_extractor/docker-compose.yml --profile with-ollama up --build
+```
+
+Then set `INVOICE_LLM_PROVIDER=ollama` and optionally `OLLAMA_BASE_URL=http://ollama:11434` in `.env`. If Ollama runs on the host, use `OLLAMA_BASE_URL=http://host.docker.internal:11434` instead.
+
 ## Outputs
 
 - **`invoice_extractor/outputs/output.csv`** — Reconciled invoice data (one row per image: `file_name` + extracted fields).
@@ -130,20 +157,24 @@ A short summary is printed: images processed, field accuracy, document accuracy,
 ```
 invoice-extraction/
 ├── main.py                 # Entry point from repo root: python main.py
-├── .env.example            # Optional at root; copy to .env
+├── .env.example            # Copy to .env; used by Docker (env_file) and local runs
 ├── invoice_extractor/
 │   ├── README.md           # This file
 │   ├── config.py           # Env-based configuration
 │   ├── main.py             # Core loop: load images, run A+B, compare, write CSVs
 │   ├── models.py           # Invoice data models
 │   ├── requirements.txt    # pip install -r invoice_extractor/requirements.txt
-│   ├── .env.example        # Copy to invoice_extractor/.env or repo root .env
+│   ├── .env.example        # Alternative .env template (same as root)
+│   ├── Dockerfile          # Build image with Tesseract + Python deps
+│   ├── docker-compose.yml  # Run extraction; optional Ollama service (--profile with-ollama)
+│   ├── .dockerignore       # Excludes venv, .env, outputs, most notebooks
 │   ├── pipeline_a/         # OCR (Tesseract/Azure) + LLM extraction
 │   ├── pipeline_b/         # OCR + regex-based extraction
 │   ├── utils/              # Normalizer, validator
 │   ├── images/             # Default image directory (or set INVOICE_IMAGES_DIR)
 │   ├── outputs/            # output.csv, comparison_report.csv
-│   └── colab_setup.ipynb   # Colab notebook to run in Google Colab
+│   ├── colab_setup.ipynb   # Colab notebook to run in Google Colab
+│   └── colab_invoice_extraction_mimic.ipynb
 └── colab_setup.ipynb       # Alternative Colab entry at repo root
 ```
 

@@ -1,0 +1,30 @@
+services:
+  invoice-extraction:
+    build: .
+    image: invoice-extraction:latest
+    container_name: invoice-extraction
+    env_file:
+      - .env
+    environment:
+      - INVOICE_IMAGES_DIR=/app/invoice_extractor/images
+      - INVOICE_LLM_PROVIDER=${INVOICE_LLM_PROVIDER:-openai}
+      # When using Ollama service below: OLLAMA_BASE_URL=http://ollama:11434
+      # When using Ollama on host: OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+    volumes:
+      - ./images:/app/invoice_extractor/images:ro
+      - ./outputs:/app/invoice_extractor/outputs
+
+  # Optional: local LLM for Pipeline A (no API key). Enable with: docker compose --profile with-ollama up
+  ollama:
+    image: ollama/ollama:latest
+    container_name: invoice-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - with-ollama
+
+volumes:
+  ollama_data:
