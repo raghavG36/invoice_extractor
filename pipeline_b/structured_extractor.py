@@ -16,31 +16,55 @@ logger = logging.getLogger(__name__)
 
 
 # Common patterns (generic; work across locales/formats)
+# PATTERNS = {
+#     "invoice_number": [
+#     r"^.*\b(?:invoice|factura|rechnung)\b.*?(?:no\.?|nr\.?|#)\s*[:\-]?\s*([A-Z0-9\-\/]{4,})",
+# ],
+#     "invoice_date": [
+#     r"\b(?:invoice\s+date|date|datum|data)\b\s*[:\-]?\s*(\d{4}[./\-]\d{2}[./\-]\d{2})",
+#     r"\b(?:invoice\s+date|date|datum|data)\b\s*[:\-]?\s*(\d{2}[./\-]\d{2}[./\-]\d{4})",
+# ],
+#     "seller_tax_id": [
+#     r"\b(?:seller|vendor|from)\b.*?(?:vat|tax\s*id|tin)\s*[:\-]?\s*([A-Z0-9\- ]{8,})",
+#     r"\bvat\s*[:\-]?\s*([A-Z]{2}\s?\d{8,12})",
+# ],
+#     "client_tax_id": [
+#     r"\b(?:buyer|client|customer|bill\s+to)\b.*?(?:vat|tax\s*id|tin)\s*[:\-]?\s*([A-Z0-9\- ]{8,})",
+# ],
+#    "net_worth": [
+#     r"\b(?:subtotal|net\s+amount|netto)\b\s*[:\-]?\s*([\d,.]+\d{2})"
+# ],
+#     "vat": [
+#     r"\b(?:vat|tax)\b\s*[:\-]?\s*([\d,.]+\d{2})"
+# ],
+#    "gross_worth": [
+#     r"\b(?:total\s+amount|amount\s+due|gross|brutto|to\s+pay)\b\s*[:\-]?\s*([\d,.]+\d{2})"
+# ],
+# }
+
+
+# Seller/Client: support both "Label:\nName" and "Label: Name" (OCR often flattens)
+_NAME_CAPTURE = r"[A-Za-z0-9 ,&.'\-]+"
 PATTERNS = {
-    "invoice_number": [
-    r"^.*\b(?:invoice|factura|rechnung)\b.*?(?:no\.?|nr\.?|#)\s*[:\-]?\s*([A-Z0-9\-\/]{4,})",
-],
-    "invoice_date": [
-    r"\b(?:invoice\s+date|date|datum|data)\b\s*[:\-]?\s*(\d{4}[./\-]\d{2}[./\-]\d{2})",
-    r"\b(?:invoice\s+date|date|datum|data)\b\s*[:\-]?\s*(\d{2}[./\-]\d{2}[./\-]\d{4})",
-],
-    "seller_tax_id": [
-    r"\b(?:seller|vendor|from)\b.*?(?:vat|tax\s*id|tin)\s*[:\-]?\s*([A-Z0-9\- ]{8,})",
-    r"\bvat\s*[:\-]?\s*([A-Z]{2}\s?\d{8,12})",
-],
-    "client_tax_id": [
-    r"\b(?:buyer|client|customer|bill\s+to)\b.*?(?:vat|tax\s*id|tin)\s*[:\-]?\s*([A-Z0-9\- ]{8,})",
-],
-   "net_worth": [
-    r"\b(?:subtotal|net\s+amount|netto)\b\s*[:\-]?\s*([\d,.]+\d{2})"
-],
-    "vat": [
-    r"\b(?:vat|tax)\b\s*[:\-]?\s*([\d,.]+\d{2})"
-],
-   "gross_worth": [
-    r"\b(?  :total\s+amount|amount\s+due|gross|brutto|to\s+pay)\b\s*[:\-]?\s*([\d,.]+\d{2})"
-],
+    "invoice_number": [r"Invoice\s*no[:\s]*([0-9]+)"],
+    "invoice_date": [r"\b(\d{2}/\d{2}/\d{4})\b"],
+    "seller_name": [
+        r"Seller:\s*\n\s*(" + _NAME_CAPTURE + r")",
+        r"Seller:\s*(" + _NAME_CAPTURE + r")",
+    ],
+    "seller_tax_id": [r"Tax\s*Id[:\s]*([0-9\-]+)"],
+    "client_name": [
+        r"Client:\s*\n\s*(" + _NAME_CAPTURE + r")",
+        r"Client:\s*(" + _NAME_CAPTURE + r")",
+    ],
+    "client_tax_id": [r"Tax\s*Id[:\s]*([0-9\-]+)"],
+    "net_worth": [r"Net worth\s*\n\s*[\$]?\s*([0-9 ,\.]+)"],
+    "vat": [r"VAT\s*\n\s*[\$]?\s*([0-9 ,\.]+)"],
+    "gross_worth": [r"Gross worth\s*\n\s*[\$]?\s*([0-9 ,\.]+)"],
 }
+
+
+
 
 
 def _first_match(text: str, patterns: list) -> Optional[str]:
@@ -98,7 +122,18 @@ def extract_structured(text: str) -> dict:
     result = {f: None for f in REQUIRED_FIELDS}
     text_nl = text.replace("\r", "\n")
 
-    seller_name, client_name = _extract_names_from_text(text_nl)
+    # logger.info("text_nl: %s", text_nl)
+
+    # Prefer regex patterns when text has "Seller:" / "Client:"; fallback to heuristic
+    seller_name = _first_match(text_nl, PATTERNS["seller_name"])
+    client_name = _first_match(text_nl, PATTERNS["client_name"])
+    if seller_name is None or client_name is None:
+        heuristic_seller, heuristic_client = _extract_names_from_text(text_nl)
+        if seller_name is None:
+            seller_name = heuristic_seller
+        if client_name is None:
+            client_name = heuristic_client
+
     result["seller_name"] = seller_name
     result["client_name"] = client_name
 

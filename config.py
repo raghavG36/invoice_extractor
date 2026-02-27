@@ -21,7 +21,7 @@ OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 # Image range (batch1-0331 to batch1-0381 = 50 images)
 IMAGE_PREFIX = os.getenv("INVOICE_IMAGE_PREFIX", "batch1-")
 IMAGE_START = int(os.getenv("INVOICE_IMAGE_START", "348"))
-IMAGE_END = int(os.getenv("INVOICE_IMAGE_END", "349"))
+IMAGE_END = int(os.getenv("INVOICE_IMAGE_END", "350"))
 IMAGE_EXT = os.getenv("INVOICE_IMAGE_EXT", "jpg")
 
 # Pipeline A: OCR + LLM — "openai", "gemini" (free in Colab), or "ollama" (local)
