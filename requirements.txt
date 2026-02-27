@@ -1,0 +1,13 @@
+# Invoice extraction system
+pydantic>=2.0,<3
+openai>=1.0
+pytesseract>=0.3.10
+Pillow>=10.0
+python-dotenv>=1.0
+google-generativeai>=0.8.0
+
+# Optional: Azure Computer Vision (Pipeline A OCR alternative)
+# azure-ai-vision-imageanalysis>=1.0.0b1
+
+# Optional: Azure Document Intelligence (Pipeline B alternative)
+# azure-ai-formrecognizer>=3.3.0
