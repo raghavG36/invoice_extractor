@@ -1,0 +1,19 @@
+file_name,field_name,pipeline_a_value,pipeline_b_value,match
+batch1-0348.jpg,seller_name,miller inc,,False
+batch1-0348.jpg,seller_tax_id,938-92-9047,,False
+batch1-0348.jpg,client_name,conley-irwin,,False
+batch1-0348.jpg,client_tax_id,997-98-1436,,False
+batch1-0348.jpg,invoice_number,50956755,,False
+batch1-0348.jpg,invoice_date,2019-06-09,,False
+batch1-0348.jpg,net_worth,30954.82,,False
+batch1-0348.jpg,vat,2904.98,,False
+batch1-0348.jpg,gross_worth,31954.82,,False
+batch1-0349.jpg,seller_name,"hernandez, barber and jones",,False
+batch1-0349.jpg,seller_tax_id,934-99-4537,,False
+batch1-0349.jpg,client_name,hall-skinner,,False
+batch1-0349.jpg,client_tax_id,944-87-7634,,False
+batch1-0349.jpg,invoice_number,39571754,,False
+batch1-0349.jpg,invoice_date,2013-03-07,,False
+batch1-0349.jpg,net_worth,6950.2,,False
+batch1-0349.jpg,vat,695.02,,False
+batch1-0349.jpg,gross_worth,7645.22,,False
