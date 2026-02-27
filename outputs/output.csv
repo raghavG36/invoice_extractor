@@ -1,3 +1,4 @@
 file_name,seller_name,seller_tax_id,client_name,client_tax_id,invoice_number,invoice_date,net_worth,vat,gross_worth
-batch1-0348.jpg,,,,,,,,,
-batch1-0349.jpg,,,,,,,,,
+batch1-0348.jpg,miller inc,938-92-9047,conley-irwin,938-92-9047,50956755,2019-06-09,29049.84,2904.98,31954.82
+batch1-0349.jpg,"hernandez, barber and jones",934-99-4537,hall-skinner,934-99-4537,39571754,2013-03-07,6950.2,695.02,7645.22
+batch1-0350.jpg,daniel-benson,991-85-2472,"mcdonald, jordan and malone",991-85-2472,39077025,,,,3901.63
